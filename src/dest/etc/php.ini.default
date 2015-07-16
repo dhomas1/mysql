@@ -1,0 +1,9 @@
+short_open_tag = On
+date.timezone = "America/Los_Angeles"
+include_path = "."
+log_errors = On
+error_log = "/tmp/DroboApps/mysql/php.log"
+session.save_path = "/tmp/DroboApps/mysql/sessions"
+output_buffering = Off
+openssl.cafile = "/mnt/DroboFS/Shares/DroboApps/mysql/etc/ssl/certs/ca-certificates.crt"
+upload_tmp_dir = "/mnt/DroboFS/Shares/DroboApps/mysql/tmp"
