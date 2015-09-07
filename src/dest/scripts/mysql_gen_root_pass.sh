@@ -6,7 +6,7 @@ set -o errexit
 prog_dir="$(dirname $(realpath "${0}"))/.."
 data_dir="$(realpath "${prog_dir}/data")"
 
-rootpass="$("${prog_dir}/libexec/openssl" rand -hex 6)"
+rootpass="$("${prog_dir}/libexec/openssl" rand -hex 10)"
 if [ -z "${rootpass}" ]; then
   echo "Root password generation failed." >&2
   exit 1

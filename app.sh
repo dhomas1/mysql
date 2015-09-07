@@ -63,7 +63,7 @@ _build_openssl() {
 local VERSION="1.0.2d"
 local FOLDER="openssl-${VERSION}"
 local FILE="${FOLDER}.tar.gz"
-local URL="http://www.openssl.org/source/${FILE}"
+local URL="http://mirror.switch.ch/ftp/mirror/openssl/source/${FILE}"
 
 _download_tgz "${FILE}" "${URL}" "${FOLDER}"
 cp -vf "src/${FOLDER}-parallel-build.patch" "target/${FOLDER}/"
@@ -71,15 +71,20 @@ pushd "target/${FOLDER}"
 patch -p1 -i "${FOLDER}-parallel-build.patch"
 ./Configure --prefix="${DEPS}" --openssldir="${DEST}/etc/ssl" \
   zlib-dynamic --with-zlib-include="${DEPS}/include" --with-zlib-lib="${DEPS}/lib" \
-  shared threads linux-armv4 -DL_ENDIAN ${CFLAGS} ${LDFLAGS} -Wa,--noexecstack -Wl,-z,noexecstack
+  shared threads linux-armv4 -DL_ENDIAN ${CFLAGS} ${LDFLAGS} \
+  -Wa,--noexecstack -Wl,-z,noexecstack
 sed -i -e "s/-O3//g" Makefile
 make
 make install_sw
-mkdir -p "${DEST}/libexec/"
+mkdir -p "${DEST}/libexec"
 cp -vfa "${DEPS}/bin/openssl" "${DEST}/libexec/"
+cp -vfa "${DEPS}/lib/libssl.so"* "${DEST}/lib/"
+cp -vfa "${DEPS}/lib/libcrypto.so"* "${DEST}/lib/"
+cp -vfaR "${DEPS}/lib/engines" "${DEST}/lib/"
+cp -vfaR "${DEPS}/lib/pkgconfig" "${DEST}/lib/"
 rm -vf "${DEPS}/lib/libcrypto.a" "${DEPS}/lib/libssl.a"
-cp -vfaR "${DEPS}/lib/"* "${DEST}/lib/"
-sed -i -e "s|^exec_prefix=.*|exec_prefix=${DEST}|g" "${DEST}/lib/pkgconfig/openssl.pc"
+sed -e "s|^libdir=.*|libdir=${DEST}/lib|g" -i "${DEST}/lib/pkgconfig/libcrypto.pc"
+sed -e "s|^libdir=.*|libdir=${DEST}/lib|g" -i "${DEST}/lib/pkgconfig/libssl.pc"
 popd
 }
 
@@ -105,7 +110,7 @@ popd
 ### MYSQL ###
 _build_mysql() {
 # sudo apt-get install cmake ccmake g++ libncurses5-dev
-local VERSION="5.6.25"
+local VERSION="5.6.26"
 local FOLDER="mysql-${VERSION}"
 local FILE="${FOLDER}.tar.gz"
 local URL="http://cdn.mysql.com/Downloads/MySQL-5.6/${FILE}"
@@ -163,7 +168,8 @@ sed -e "30iTARGET_LINK_LIBRARIES(mysql_embedded linux-atomic linux-atomic-64bit)
     -e "74i\  TARGET_LINK_LIBRARIES(mysql_client_test_embedded linux-atomic linux-atomic-64bit)" \
     -i libmysqld/examples/CMakeLists.txt
 
-cmake . -DCMAKE_TOOLCHAIN_FILE="./cmake_toolchain_file.${ARCH}" \
+LDFLAGS="${LDFLAGS:-} -L${DEPS}/lib" \
+  cmake . -DCMAKE_TOOLCHAIN_FILE="./cmake_toolchain_file.${ARCH}" \
   -DCMAKE_AR="${AR}" \
   -DCMAKE_STRIP="${STRIP}" \
   -DCMAKE_INSTALL_PREFIX="${DEST}" \
@@ -217,7 +223,7 @@ popd
 
 ### PHP ###
 _build_php() {
-local VERSION="5.6.10"
+local VERSION="5.6.13"
 local FOLDER="php-${VERSION}"
 local FILE="${FOLDER}.tar.gz"
 local URL="http://ch1.php.net/get/${FILE}/from/this/mirror"
@@ -274,9 +280,9 @@ local FILE="${FOLDER}-${VERSION}.zip"
 local URL="http://sourceforge.net/projects/mywebsql/files/stable/${FILE}"
 
 _download_zip "${FILE}" "${URL}" "${FOLDER}"
-mkdir -p "${DEST}/www"
-cp -vfaR "target/${FOLDER}/"* "${DEST}/www/"
-rm -vf "${DEST}/www/install.php"
+mkdir -p "${DEST}/www/mywebsql"
+cp -vfaR "target/${FOLDER}/"* "${DEST}/www/mywebsql/"
+rm -vf "${DEST}/www/mywebsql/install.php"
 }
 
 ### CERTIFICATES ###
@@ -284,6 +290,7 @@ _build_certificates() {
 # update CA certificates on a Debian/Ubuntu machine:
 #sudo update-ca-certificates
 cp -vf /etc/ssl/certs/ca-certificates.crt "${DEST}/etc/ssl/certs/"
+ln -vfs certs/ca-certificates.crt "${DEST}/etc/ssl/cert.pem"
 }
 
 ### SQL BOOTSTRAP ###

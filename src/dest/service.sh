@@ -7,10 +7,10 @@
 
 framework_version="2.1"
 name="mysql"
-version="5.6.25"
-description="SQL Database Server"
+version="5.6.26"
+description="The world's most popular open source database"
 depends=""
-webui=":8033/"
+webui="WebUI"
 
 prog_dir="$(dirname "$(realpath "${0}")")"
 daemon="${prog_dir}/bin/mysqld"
@@ -41,26 +41,20 @@ _create_user() {
 }
 
 start() {
-  local rootpass
   _create_user
   mkdir -p "${tmp_dir}/sessions"
-  setsid "${daemon}" --user=mysql --basedir="${prog_dir}" --datadir="${data_dir}" --pid-file="${pidfile}" --log-error="${logfile}" --init-file="${data_dir}/.root.sql" &
+  /sbin/start-stop-daemon -S -x "${daemon}" -b -- --user=mysql --basedir="${prog_dir}" --datadir="${data_dir}" --pid-file="${pidfile}" --log-error="${logfile}" --init-file="${data_dir}/.root.sql"
   if ! is_running "${pidweb}" "${webserver}"; then
     "${webserver}" "${confweb}" & echo $! > "${pidweb}"
   fi
-  rootpass="$(awk -F= '$1 == "password" {print $2}' "${data_dir}/.root.cnf")"
-  echo "Application is running. Root password is ${rootpass}" > "${statusfile}"
-  chmod 600 "${statusfile}"
 }
 
 stop() {
-  rm -f "${statusfile}"
   /sbin/start-stop-daemon -K -x "${webserver}" -p "${pidweb}" -v -o
   /sbin/start-stop-daemon -K -x "${daemon}" -p "${pidfile}" -v
 }
 
 force_stop() {
-  rm -f "${statusfile}"
   /sbin/start-stop-daemon -K -s 9 -x "${webserver}" -p "${pidweb}" -v -o
   /sbin/start-stop-daemon -K -s 9 -x "${daemon}" -p "${pidfile}" -v
 }
@@ -73,7 +67,6 @@ STDERR=">&4"
 echo "$(date +"%Y-%m-%d %H-%M-%S"):" "${0}" "${@}"
 set -o errexit  # exit on uncaught error code
 set -o nounset  # exit on unset variable
-set -o pipefail # propagate last error code on pipe
 set -o xtrace   # enable script tracing
 
 main "${@}"
