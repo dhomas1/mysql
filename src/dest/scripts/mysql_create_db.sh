@@ -78,7 +78,7 @@ if [ ${backup} -eq 1 ]; then
 fi
 
 # create database
-sql="CREATE DATABASE '${name}' CHARACTER SET utf8 COLLATE utf8_general_ci; USE '${name}'; GRANT ALL PRIVILEGES ON * TO '${user}'@localhost IDENTIFIED BY '${pass}'; FLUSH PRIVILEGES;"
+sql="CREATE DATABASE \`${name}\` CHARACTER SET utf8 COLLATE utf8_general_ci; USE '${name}'; GRANT ALL PRIVILEGES ON * TO '${user}'@localhost IDENTIFIED BY '${pass}'; FLUSH PRIVILEGES;"
 if [ ${force} -eq 1 ]; then
   sql="DROP DATABASE IF EXISTS '${name}'; ${sql}"
 fi

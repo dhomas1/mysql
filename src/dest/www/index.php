@@ -7,7 +7,8 @@ $app = "mysql";
 $appname = "MySQL";
 $appversion = "5.6.26";
 $applogs = array("/tmp/DroboApps/".$app."/log.txt",
-                 "/tmp/DroboApps/mysql/php.log");
+                 "/tmp/DroboApps/".$app."/access.log",
+                 "/tmp/DroboApps/".$app."/error.log");
 $appsite = "http://www.mysql.com/";
 $apppage = "http://".$_SERVER['SERVER_ADDR'].":8033/";
 $apphelp = "http://dev.mysql.com/doc/refman/5.6/en/";
@@ -265,8 +266,8 @@ if (strpos($out[0], "running") !== FALSE) {
       </div>
       <div id="troubleshootingbody" class="panel-collapse collapse">
         <div class="panel-body">
-          <p><strong>I cannot connect to MySQL on the Drobo.</strong></p>
-          <?php if (! $apprunning) { ?><p>Make sure that mysql is running. Currently it seems to be <strong>stopped</strong>.</p><?php } ?>
+          <?php if (! $apprunning) { ?><p><strong>I cannot connect to MySQL on the Drobo.</strong></p>
+          <p>Make sure that mysql is running. Currently it seems to be <strong>stopped</strong>.</p><?php } ?>
           <p><strong>I cannot install web-based DroboApps.</strong></p>
           <p>Make sure that mysql&apos;s root password is the system-defined one. Restart mysql to be sure.</p>
           <p><strong>I cannot connect to mysql from my desktop machine using the root account.</strong></p>

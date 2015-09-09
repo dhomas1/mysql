@@ -9,21 +9,20 @@ framework_version="2.1"
 name="mysql"
 version="5.6.26"
 description="The world's most popular open source database"
-depends=""
+depends="apache"
 webui="WebUI"
 
 prog_dir="$(dirname "$(realpath "${0}")")"
 daemon="${prog_dir}/bin/mysqld"
 data_dir="${prog_dir}/data"
+apachedaemon="${DROBOAPPS_DIR}/apache/service.sh"
+conffile="${prog_dir}/etc/mywebsql.conf"
+apachefile="${DROBOAPPS_DIR}/apache/conf/includes/mywebsql.conf"
 tmp_dir="/tmp/DroboApps/${name}"
 pidfile="${tmp_dir}/pid.txt"
 logfile="${tmp_dir}/log.txt"
 statusfile="${tmp_dir}/status.txt"
 errorfile="${tmp_dir}/error.txt"
-
-webserver="${prog_dir}/libexec/web_server"
-confweb="${prog_dir}/etc/web_server.conf"
-pidweb="/tmp/DroboApps/${name}/web_server.pid"
 
 # backwards compatibility
 if [ -z "${FRAMEWORK_VERSION:-}" ]; then
@@ -43,19 +42,20 @@ _create_user() {
 start() {
   _create_user
   mkdir -p "${tmp_dir}/sessions"
+  cp -vf "${conffile}" "${apachefile}"
+  "${apachedaemon}" restart || true
   /sbin/start-stop-daemon -S -x "${daemon}" -b -- --user=mysql --basedir="${prog_dir}" --datadir="${data_dir}" --pid-file="${pidfile}" --log-error="${logfile}" --init-file="${data_dir}/.root.sql"
-  if ! is_running "${pidweb}" "${webserver}"; then
-    "${webserver}" "${confweb}" & echo $! > "${pidweb}"
-  fi
 }
 
 stop() {
-  /sbin/start-stop-daemon -K -x "${webserver}" -p "${pidweb}" -v -o
+  rm -vf "${apachefile}"
+  "${apachedaemon}" restart || true
   /sbin/start-stop-daemon -K -x "${daemon}" -p "${pidfile}" -v
 }
 
 force_stop() {
-  /sbin/start-stop-daemon -K -s 9 -x "${webserver}" -p "${pidweb}" -v -o
+  rm -vf "${apachefile}"
+  "${apachedaemon}" restart || true
   /sbin/start-stop-daemon -K -s 9 -x "${daemon}" -p "${pidfile}" -v
 }
 

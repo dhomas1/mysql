@@ -206,72 +206,6 @@ mkdir -p -m 775 "${DEST}/tmp"
 popd
 }
 
-### GMP ###
-_build_gmp() {
-local VERSION="6.0.0"
-local FOLDER="gmp-${VERSION}"
-local FILE="${FOLDER}a.tar.xz"
-local URL="ftp://ftp.gnu.org/gnu/gmp/${FILE}"
-
-_download_xz "${FILE}" "${URL}" "${FOLDER}"
-pushd "target/${FOLDER}"
-./configure --host="${HOST}" --prefix="${DEPS}" --libdir="${DEST}/lib" --disable-static
-make
-make install
-popd
-}
-
-### PHP ###
-_build_php() {
-local VERSION="5.6.13"
-local FOLDER="php-${VERSION}"
-local FILE="${FOLDER}.tar.gz"
-local URL="http://ch1.php.net/get/${FILE}/from/this/mirror"
-export QEMU_LD_PREFIX="${TOOLCHAIN}/${DROBO}/${HOST}/libc"
-
-_download_tgz "${FILE}" "${URL}" "${FOLDER}"
-pushd "target/${FOLDER}"
-sed -i -e "/unset ac_cv_func_dlopen/d" -e "/unset ac_cv_lib_dl_dlopen/d" configure
-./configure --host="${HOST}" --prefix="${DEPS}" --bindir="${DEST}/libexec" --libdir="${DEST}/lib" \
-  --disable-all --disable-static --disable-cli --enable-cgi \
-  --with-pic --with-config-file-path="${DEST}/etc" \
-  --enable-bcmath \
-  --enable-ctype \
-  --enable-hash \
-  --enable-json \
-  --enable-pdo \
-  --enable-session \
-  --enable-zip \
-  --with-gmp="${DEPS}" \
-  --with-mysql="${DEST}" \
-  --with-mysqli="${DEST}/bin/mysql_config" \
-  --with-openssl="${DEPS}" \
-  --with-openssl-dir="${DEPS}" \
-  --with-pdo-mysql="${DEST}/bin/mysql_config" \
-  --with-zlib="${DEPS}" \
-  --with-zlib-dir="${DEPS}" \
-  LIBS="-ldl" ac_cv_func_dlopen=yes ac_cv_lib_dl_dlopen=yes
-make
-make install
-rm -vf "${DEST}/libexec/php" "${DEST}/libexec/php-config" "${DEST}/libexec/phpize"
-popd
-}
-
-### MONGOOSE ###
-_build_mongoose() {
-local COMMIT="524aa2e58699491b5a0bca53d5fb3e4c33e05d8e"
-local FOLDER="mongoose-${COMMIT}"
-local FILE="${FOLDER}.zip"
-local URL="https://github.com/cesanta/mongoose/archive/${COMMIT}.zip"
-
-_download_zip "${FILE}" "${URL}" "${FOLDER}"
-pushd "target/${FOLDER}/examples/web_server"
-make
-mkdir -p "${DEST}/libexec"
-cp web_server "${DEST}/libexec/"
-popd
-}
-
 ### MYWEBSQL ###
 _build_mywebsql() {
 local VERSION="3.6"
@@ -280,9 +214,9 @@ local FILE="${FOLDER}-${VERSION}.zip"
 local URL="http://sourceforge.net/projects/mywebsql/files/stable/${FILE}"
 
 _download_zip "${FILE}" "${URL}" "${FOLDER}"
-mkdir -p "${DEST}/www/mywebsql"
-cp -vfaR "target/${FOLDER}/"* "${DEST}/www/mywebsql/"
-rm -vf "${DEST}/www/mywebsql/install.php"
+mkdir -p "${DEST}/app"
+cp -vfaR "target/${FOLDER}/"* "${DEST}/app/"
+rm -vf "${DEST}/app/install.php"
 }
 
 ### CERTIFICATES ###
@@ -317,9 +251,6 @@ _build() {
   _build_openssl
   _build_ncurses
   _build_mysql
-  _build_gmp
-  _build_php
-  _build_mongoose
   _build_mywebsql
   _build_certificates
   _build_sql_bootstrap

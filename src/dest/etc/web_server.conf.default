@@ -1,4 +1,0 @@
-listening_port 8033
-document_root /mnt/DroboFS/Shares/DroboApps/mysql/www/mywebsql
-cgi_interpreter /mnt/DroboFS/Shares/DroboApps/mysql/libexec/php-cgi
-cgi_pattern **.php
