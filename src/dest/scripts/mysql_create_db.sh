@@ -35,7 +35,7 @@ _mysql() {
   "${daemon}" --defaults-file="${data_dir}/.root.cnf" "$@" 2>&1
 }
 
-while getopts “hn:u:p:fb:” OPTION; do
+while getopts "hn:u:p:fb:" OPTION; do
   case $OPTION in
     h) usage ; exit 1 ;;
     n) name=$OPTARG ;;
