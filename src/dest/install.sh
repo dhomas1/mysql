@@ -24,6 +24,13 @@ find "${prog_dir}" -type f -name "*.default" -print | while read deffile; do
   fi
 done
 
+# copy initial database
+if [ ! -d "${data_dir}" ]; then
+  mv -vf "${data_dir}.initial" "${data_dir}"
+else
+  rm -fR "${data_dir}.initial"
+fi
+
 # generate server RSA key
 if [ ! -f "${data_dir}/private_key.pem" ]; then
   "${prog_dir}/libexec/openssl" genrsa -out "${data_dir}/private_key.pem" 2048

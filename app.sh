@@ -231,7 +231,7 @@ ln -vfs certs/ca-certificates.crt "${DEST}/etc/ssl/cert.pem"
 _build_sql_bootstrap() {
 export QEMU_LD_PREFIX="${TOOLCHAIN}/${HOST}/libc"
 
-rm -vfr "${DEST}/data"
+rm -vfr "${DEST}/data" "${DEST}/data.initial"
 mkdir -p "${DEST}/data"
 
 # taskset is needed due to bugs in qemu-user-static
@@ -241,6 +241,8 @@ timeout --signal=SIGKILL 60 taskset 1 perl "${DEST}/scripts/mysql_install_db" --
 # taskset is needed due to bugs in qemu-user-static
 # see: https://bugs.launchpad.net/ubuntu/+source/qemu/+bug/1350435
 timeout --signal=SIGKILL 60 taskset 1 "${DEST}/bin/mysqld" --basedir="${DEST}" --datadir="${DEST}/data" --bootstrap --thread-handling=no-threads --thread_concurrency=1 < "src/mysql_secure_installation.sql"
+
+mv -vf "${DEST}/data" "${DEST}/data.initial"
 }
 
 ### BUILD ###
