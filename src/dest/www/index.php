@@ -3,22 +3,9 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 
-$app = "mysql";
-$appname = "MySQL";
-$appversion = "5.6.26";
-$applogs = array("/tmp/DroboApps/".$app."/log.txt",
-                 "/tmp/DroboApps/".$app."/access.log",
-                 "/tmp/DroboApps/".$app."/error.log");
-$appsite = "http://www.mysql.com/";
-$apppage = "http://".$_SERVER['SERVER_ADDR'].":8033/";
-$apphelp = "http://dev.mysql.com/doc/refman/5.6/en/";
-
-exec("/bin/sh /usr/bin/DroboApps.sh sdk_version", $out, $rc);
-if ($rc === 0) {
-  $sdkversion = $out[0];
-} else {
-  $sdkversion = "2.0";
-}
+include('includes/sdkversion.php');
+include('includes/publicip.php');
+include('includes/variables.php');
 
 $op = $_REQUEST['op'];
 switch ($op) {
@@ -68,22 +55,7 @@ switch ($op) {
     break;
 }
 
-$droboip = $_SERVER['SERVER_ADDR'];
-$rootcnffile = "/mnt/DroboFS/Shares/DroboApps/mysql/data/.root.cnf";
-$rootcnf = file_get_contents($rootcnffile);
-$rootpass = shell_exec("/usr/bin/awk -F= '$1 == \"password\" {print $2}' ".$rootcnffile);
-
-unset($out);
-exec("/usr/bin/DroboApps.sh status_app ".$app, $out, $rc);
-if ($rc !== 0) {
-  unset($out);
-  exec("/mnt/DroboFS/Shares/DroboApps/".$app."/service.sh status", $out, $rc);
-}
-if (strpos($out[0], "running") !== FALSE) {
-  $apprunning = TRUE;
-} else {
-  $apprunning = FALSE;
-}
+include('includes/appstatus.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -103,6 +75,7 @@ if (strpos($out[0], "running") !== FALSE) {
 </head>
 
 <body>
+<!-- logo bar -->
 <nav class="navbar navbar-default navbar-fixed-top">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -115,7 +88,9 @@ if (strpos($out[0], "running") !== FALSE) {
     </div>
   </div>
 </nav>
+<!-- /logo bar -->
 
+<!-- title and button bar -->
 <div class="container top-toolbar">
   <div role="toolbar" class="btn-toolbar">
     <div role="group" class="btn-group">
@@ -123,21 +98,19 @@ if (strpos($out[0], "running") !== FALSE) {
     </div>
     <div role="group" class="btn-group pull-right">
 <?php if ($apprunning) { ?>
-<?php if ($sdkversion != "2.0") { ?>
       <a role="button" class="btn btn-primary" href="?op=stop" onclick="$('#pleaseWaitDialog').modal(); return true"><span class="glyphicon glyphicon-stop"></span> Stop</a>
-<?php } ?>
       <a role="button" class="btn btn-primary" href="<?php echo $apppage; ?>" target="_new"><span class="glyphicon glyphicon-globe"></span> Go to App</a>
 <?php } else { ?>
-<?php if ($sdkversion != "2.0") { ?>
       <a role="button" class="btn btn-primary" href="?op=start" onclick="$('#pleaseWaitDialog').modal(); return true"><span class="glyphicon glyphicon-play"></span> Start</a>
-<?php } ?>
       <a role="button" class="btn btn-primary disabled" href="<?php echo $apppage; ?>" target="_new"><span class="glyphicon glyphicon-globe"></span> Go to App</a>
 <?php } ?>
       <a role="button" class="btn btn-primary" href="<?php echo $apphelp; ?>" target="_new"><span class="glyphicon glyphicon-question-sign"></span> Help</a>
     </div>
   </div>
 </div>
+<!-- /title bar -->
 
+<!-- operation modal wait -->
 <div role="dialog" id="pleaseWaitDialog" class="modal animated bounceIn" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -151,8 +124,12 @@ if (strpos($out[0], "running") !== FALSE) {
     </div>
   </div>
 </div>
+<!-- /operation modal wait -->
 
+<!-- page sections -->
 <div class="container">
+
+<!-- operation feedback -->
   <div class="row">
     <div class="col-xs-3"></div>
     <div class="col-xs-6">
@@ -177,16 +154,6 @@ if (strpos($out[0], "running") !== FALSE) {
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
         <?php echo $appname; ?> failed to stop. See logs below for more information.
       </div>
-<?php break; case "okrootpass": ?>
-      <div class="alert alert-success fade in" id="opstatus">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        New root password successfully generated.
-      </div>
-<?php break; case "nokrootpass": ?>
-      <div class="alert alert-error fade in" id="opstatus">
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        Failed to generate a new root password. See logs below for more information.
-      </div>
 <?php break; } ?>
       <script>
       window.setTimeout(function() {
@@ -198,6 +165,7 @@ if (strpos($out[0], "running") !== FALSE) {
     </div><!-- col -->
     <div class="col-xs-3"></div>
   </div><!-- row -->
+<!-- /operation feedback -->
 
   <div class="row">
     <div class="col-xs-12">
@@ -210,49 +178,43 @@ if (strpos($out[0], "running") !== FALSE) {
       </div>
       <div id="descriptionbody" class="panel-collapse collapse in">
         <div class="panel-body">
-          <p>This DroboApp packages a complete SQL database solution for your Drobo. It includes:</p>
-          <ul>
-            <li><a href="http://www.mysql.com/" target="_new">MySQL</a>, the world&apos;s most popular open source database.</li>
-            <li><a href="http://mywebsql.net/" target="_new">MyWebSQL</a>, a fast, intuitive and modern web based database client for MySQL.</li>
-          </ul>
-          <p>This DroboApp is used as the backend storage for web apps that run on the Drobo, and as such it is usually automatically installed as a dependency.</p>
+<?php include('includes/description.php'); ?>
+          <div class="pull-right">
+            <a role="button" class="btn btn-default" href="<?php echo $appsite; ?>" target="_new"><span class="glyphicon glyphicon-globe"></span> Learn more about <?php echo $appname; ?></a>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- shorthelp -->
-  <div class="panel-group" id="shorthelp">
+  <!-- getting started -->
+  <div class="panel-group" id="gettingstarted">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h4 class="panel-title"><a data-toggle="collapse" data-parent="#shorthelp" href="#shorthelpbody">Getting started</a></h4>
+        <h4 class="panel-title"><a data-toggle="collapse" data-parent="#gettingstarted" href="#gettingstartedbody">Getting started</a></h4>
       </div>
-      <div id="shorthelpbody" class="panel-collapse collapse in">
+      <div id="gettingstartedbody" class="panel-collapse collapse in">
         <div class="panel-body">
-          <p>To access MySQL on your Drobo click the &quot;Go to App&quot; button above.</p>
-          <p>The admin login and password are:</p>
-          <form class="form-horizontal">
-            <div class="form-group">
-              <label for="admin_login" class="col-sm-2 control-label">User ID:</label>
-              <div class="col-sm-8">
-                <input type="text" class="form-control" id="admin_login" value="root" readonly />
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="admin_password" class="col-sm-2 control-label">Password:</label>
-              <div class="col-sm-8">
-                <input type="text" class="form-control" id="admin_password" value="<?php echo $rootpass; ?>" readonly />
-              </div>
-            </div>
-          </form>
-          <p><strong>Please do not change the root password manually or using MyWebSQL.</strong> Other apps rely on the root password being system-defined, and it will be reset to the system-defined value when MySQL is started.</p>
-<?php if ($sdkversion != "2.0") { ?>
-          <p>If you need to change the root password, you can generate a new one by clicking the button below.<?php if ($apprunning) { ?> Keep in mind that changing the root password <strong>will restart mysql</strong>.<?php } ?></p>
-          <a class="btn btn-default" href="?op=rootpass<?php if ($apprunning) echo '&restart=1' ?>" onclick="$('#pleaseWaitDialog').modal(); return true"><span class="glyphicon glyphicon-asterisk"></span> Regenerate root password</a>
-<?php } else { ?>
-          <p>If you need to change the root password, please stop mysql, reopen this page, and click this button:</p>
-          <a class="btn btn-default disabled" href="?op=rootpass" onclick="$('#pleaseWaitDialog').modal(); return true"><span class="glyphicon glyphicon-asterisk"></span> Regenerate root password</a>
-<?php } ?>
+          <p>To access <?php echo $appname; ?> on your Drobo click the &quot;Go to App&quot; button above.</p>
+<?php include('includes/https.php'); ?>
+<?php include('includes/gettingstarted.php'); ?>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- next steps -->
+  <div class="panel-group" id="nextsteps">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title"><a data-toggle="collapse" data-parent="#nextsteps" href="#nextstepsbody">Next steps</a></h4>
+      </div>
+      <div id="nextstepsbody" class="panel-collapse collapse in">
+        <div class="panel-body">
+<?php include('includes/nextsteps.php'); ?>
+<?php include('includes/ports.php'); ?>
+<?php include('includes/publicurl.php'); ?>
+<?php include('includes/ssl.php'); ?>
         </div>
       </div>
     </div>
@@ -266,60 +228,36 @@ if (strpos($out[0], "running") !== FALSE) {
       </div>
       <div id="troubleshootingbody" class="panel-collapse collapse">
         <div class="panel-body">
-          <?php if (! $apprunning) { ?><p><strong>I cannot connect to MySQL on the Drobo.</strong></p>
-          <p>Make sure that mysql is running. Currently it seems to be <strong>stopped</strong>.</p><?php } ?>
-          <p><strong>I cannot install web-based DroboApps.</strong></p>
-          <p>Make sure that mysql&apos;s root password is the system-defined one. Restart mysql to be sure.</p>
-          <p><strong>I cannot connect to mysql from my desktop machine using the root account.</strong></p>
-          <p>The default configuration prevents remote access from the root account. Please use the web interface to change that. Keep in mind that this is a security liability.</p>
+<?php include('includes/troubleconnect.php'); ?>
+<?php include('includes/troubleshooting.php'); ?>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- logfile -->
-  <div class="panel-group" id="logfile">
+  <!-- logfiles -->
+  <div class="panel-group" id="logfiles">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h4 class="panel-title"><a data-toggle="collapse" data-parent="#logfile" href="#logfilebody">Log information</a></h4>
+        <h4 class="panel-title"><a data-toggle="collapse" data-parent="#logfiles" href="#logfilesbody">Log information</a></h4>
       </div>
-      <div id="logfilebody" class="panel-collapse collapse <?php if ($opstatus == "logs") { ?>in<?php } ?>">
+      <div id="logfilesbody" class="panel-collapse collapse <?php if ($opstatus == "logs") { ?>in<?php } ?>">
         <div class="panel-body">
-          <div role="toolbar" class="btn-toolbar">
-            <div role="group" class="btn-group  pull-right">
-              <a role="button" class="btn btn-default" href="?op=logs" onclick="$('#pleaseWaitDialog').modal(); return true"><span class="glyphicon glyphicon-refresh"></span> Reload logs</a>
-            </div>
-          </div>
-<?php foreach ($applogs as $applog) { ?>
-          <p>This is the content of <code><?php echo $applog; ?></code>:</p>
-          <pre class="pre-scrollable">
-<?php if (substr($applog, 0, 1) === ":") {
-  echo shell_exec(substr($applog, 1));
-} else {
-  echo file_get_contents($applog);
-} ?>
-          </pre>
-<?php } ?>
+<?php include('includes/logfiles.php'); ?>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- summary -->
-  <div class="panel-group" id="summary">
+  <!-- changelog -->
+  <div class="panel-group" id="changelog">
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h4 class="panel-title"><a data-toggle="collapse" data-parent="#summary" href="#summarybody">Summary of changes</a></h4>
+        <h4 class="panel-title"><a data-toggle="collapse" data-parent="#changelog" href="#changelogbody">Summary of changes</a></h4>
       </div>
-      <div id="summarybody" class="panel-collapse collapse">
+      <div id="changelogbody" class="panel-collapse collapse">
         <div class="panel-body">
-          <p>Changes from 5.6.13:</p>
-          <ol>
-            <li>Upgraded to MySQL 5.6.26 (<a href="http://dev.mysql.com/doc/relnotes/mysql/5.6/en/" target="_new">full changelog</a>)</li>
-            <li>Removed perl dependency</li>
-            <li>Included MyWebSQL 3.6</li>
-            <li>Added configuration/about page</li>
-          </ol>
+<?php include('includes/changelog.php'); ?>
         </div>
       </div>
     </div>
@@ -328,6 +266,7 @@ if (strpos($out[0], "running") !== FALSE) {
     </div><!-- col -->
   </div><!-- row -->
 </div><!-- container -->
+<!-- /page sections -->
 
 <footer>
   <div class="container">

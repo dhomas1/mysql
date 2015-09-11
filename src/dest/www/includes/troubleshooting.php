@@ -1,0 +1,2 @@
+<p><strong>I cannot connect to <?php echo $appname; ?> from my desktop machine using the root account.</strong></p>
+<p>The default configuration prevents remote access from the root account. Please use the web interface to change that. Keep in mind that this is a security liability.</p>

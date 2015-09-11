@@ -1,0 +1,1 @@
+<p>Information about creating databases, tables, and users can be found in the <a href="http://mywebsql.net/docs/" target="_new">MyWebSQL help pages</a>.</p>
