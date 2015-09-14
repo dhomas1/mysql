@@ -26,7 +26,7 @@ done
 
 # copy initial database
 if [ ! -d "${data_dir}" ]; then
-  mv -vf "${data_dir}.initial" "${data_dir}"
+  mv -f "${data_dir}.initial" "${data_dir}"
 else
   rm -fR "${data_dir}.initial"
 fi
