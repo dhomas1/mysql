@@ -1,0 +1,26 @@
+/tmp/DroboApps/mysql/log.txt {
+  missingok
+  notifempty
+  size 50k
+  rotate 1
+  su root root
+  copytruncate
+}
+
+/tmp/DroboApps/mysql/access.log {
+  missingok
+  notifempty
+  size 50k
+  rotate 1
+  su root root
+  copytruncate
+}
+
+/tmp/DroboApps/mysql/error.log {
+  missingok
+  notifempty
+  size 50k
+  rotate 1
+  su root root
+  copytruncate
+}
