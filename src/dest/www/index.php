@@ -140,7 +140,7 @@ include('includes/appstatus.php');
         <?php echo $appname; ?> was successfully started.
       </div>
 <?php break; case "nokstart": ?>
-      <div class="alert alert-error fade in" id="opstatus">
+      <div class="alert alert-danger fade in" id="opstatus">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
         <?php echo $appname; ?> failed to start. See logs below for more information.
       </div>
@@ -150,7 +150,7 @@ include('includes/appstatus.php');
         <?php echo $appname; ?> was successfully stopped.
       </div>
 <?php break; case "nokstop": ?>
-      <div class="alert alert-error fade in" id="opstatus">
+      <div class="alert alert-danger fade in" id="opstatus">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
         <?php echo $appname; ?> failed to stop. See logs below for more information.
       </div>
