@@ -44,3 +44,6 @@ fi
 
 # generate root password
 "${prog_dir}/scripts/mysql_gen_root_pass.sh"
+
+# install apache 2.x
+/usr/bin/DroboApps.sh install_version apache 2
