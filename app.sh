@@ -236,8 +236,6 @@ mv -vf "${DEST}/data" "${DEST}/data.initial"
 
 ### BUILD ###
 _build() {
-#  _build_atomic
-#  _build_atomic64
   _build_zlib
   _build_openssl
   _build_ncurses
