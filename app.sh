@@ -4,47 +4,47 @@ _build_atomic() {
 # The GCC toolchain for Drobo does not support atomic builtins.
 # This is a workaround.
 # The GCC first release to include linux-atomic.c is 4.7.0.
-local FOLDER="linux-atomic"
-local FILE="${FOLDER}.c"
-local COMMIT="93c5ebd73a4d1626d25203081d079cdd68222fcc"
-local URL="https://gcc.gnu.org/git/?p=gcc.git;a=blob_plain;f=libgcc/config/arm/${FILE};hb=${COMMIT}"
+#local FOLDER="linux-atomic"
+#local FILE="${FOLDER}.c"
+#local COMMIT="93c5ebd73a4d1626d25203081d079cdd68222fcc"
+#local URL="https://gcc.gnu.org/git/?p=gcc.git;a=blob_plain;f=libgcc/config/arm/${FILE};hb=${COMMIT}"
 
-_download_file "${FILE}" "${URL}"
-mkdir -p "target/${FOLDER}"
-cp -vf "download/${FILE}" "target/${FOLDER}/"
-pushd "target/${FOLDER}"
-libtool --tag=CC --mode=compile "${CC}" ${CFLAGS} ${CPPFLAGS} -MT linux-atomic.lo -MD -MP -MF ${FOLDER}.Tpo -c -o ${FOLDER}.lo ${FILE}
-libtool --tag=CC --mode=link "${CC}" ${CFLAGS} ${LDFLAGS} -o lib${FOLDER}.la ${FOLDER}.lo
-mkdir -p "${DEPS}/lib"
-cp -vf ".libs/lib${FOLDER}.a" ".libs/lib${FOLDER}.la" "${DEPS}/lib/"
-popd
-}
+#_download_file "${FILE}" "${URL}"
+#mkdir -p "target/${FOLDER}"
+#cp -vf "download/${FILE}" "target/${FOLDER}/"
+#pushd "target/${FOLDER}"
+#libtool --tag=CC --mode=compile "${CC}" ${CFLAGS} ${CPPFLAGS} -MT linux-atomic.lo -MD -MP -MF ${FOLDER}.Tpo -c -o ${FOLDER}.lo ${FILE}
+#libtool --tag=CC --mode=link "${CC}" ${CFLAGS} ${LDFLAGS} -o lib${FOLDER}.la ${FOLDER}.lo
+#mkdir -p "${DEPS}/lib"
+#cp -vf ".libs/lib${FOLDER}.a" ".libs/lib${FOLDER}.la" "${DEPS}/lib/"
+#popd
+#}
 
 ### ATOMIC64 ###
-_build_atomic64() {
+#_build_atomic64() {
 # source: http://vincesoft.blogspot.com.br/2012/04/how-to-solve-undefined-reference-to.html
 # The GCC toolchain for Drobo does not support atomic builtins.
 # This is a workaround.
 # The GCC first release to include linux-atomic-64bit.c is 4.7.0.
-local FOLDER="linux-atomic-64bit"
-local FILE="${FOLDER}.c"
-local COMMIT="93c5ebd73a4d1626d25203081d079cdd68222fcc"
-local URL="https://gcc.gnu.org/git/?p=gcc.git;a=blob_plain;f=libgcc/config/arm/${FILE};hb=${COMMIT}"
+#local FOLDER="linux-atomic-64bit"
+#local FILE="${FOLDER}.c"
+#local COMMIT="93c5ebd73a4d1626d25203081d079cdd68222fcc"
+#local URL="https://gcc.gnu.org/git/?p=gcc.git;a=blob_plain;f=libgcc/config/arm/${FILE};hb=${COMMIT}"
 
-_download_file "${FILE}" "${URL}"
-mkdir -p "target/${FOLDER}"
-cp -vf "download/${FILE}" "target/${FOLDER}/"
-pushd "target/${FOLDER}"
-libtool --tag=CC --mode=compile "${CC}" ${CFLAGS} ${CPPFLAGS} -MT linux-atomic.lo -MD -MP -MF ${FOLDER}.Tpo -c -o ${FOLDER}.lo ${FILE}
-libtool --tag=CC --mode=link "${CC}" ${CFLAGS} ${LDFLAGS} -o lib${FOLDER}.la ${FOLDER}.lo
-mkdir -p "${DEPS}/lib"
-cp -vf ".libs/lib${FOLDER}.a" ".libs/lib${FOLDER}.la" "${DEPS}/lib/"
-popd
-}
+#_download_file "${FILE}" "${URL}"
+#mkdir -p "target/${FOLDER}"
+#cp -vf "download/${FILE}" "target/${FOLDER}/"
+#pushd "target/${FOLDER}"
+#libtool --tag=CC --mode=compile "${CC}" ${CFLAGS} ${CPPFLAGS} -MT linux-atomic.lo -MD -MP -MF ${FOLDER}.Tpo -c -o ${FOLDER}.lo ${FILE}
+#libtool --tag=CC --mode=link "${CC}" ${CFLAGS} ${LDFLAGS} -o lib${FOLDER}.la ${FOLDER}.lo
+#mkdir -p "${DEPS}/lib"
+#cp -vf ".libs/lib${FOLDER}.a" ".libs/lib${FOLDER}.la" "${DEPS}/lib/"
+#popd
+#}
 
 ### ZLIB ###
 _build_zlib() {
-local VERSION="1.2.8"
+local VERSION="1.3"
 local FOLDER="zlib-${VERSION}"
 local FILE="${FOLDER}.tar.gz"
 local URL="http://zlib.net/${FILE}"
@@ -60,15 +60,13 @@ popd
 
 ### OPENSSL ###
 _build_openssl() {
-local VERSION="1.0.2d"
+local VERSION="1.1.1w"
 local FOLDER="openssl-${VERSION}"
 local FILE="${FOLDER}.tar.gz"
-local URL="http://mirror.switch.ch/ftp/mirror/openssl/source/${FILE}"
+local URL="http://www.openssl.org/source/${FILE}"
 
 _download_tgz "${FILE}" "${URL}" "${FOLDER}"
-cp -vf "src/${FOLDER}-parallel-build.patch" "target/${FOLDER}/"
 pushd "target/${FOLDER}"
-patch -p1 -i "${FOLDER}-parallel-build.patch"
 ./Configure --prefix="${DEPS}" --openssldir="${DEST}/etc/ssl" \
   zlib-dynamic --with-zlib-include="${DEPS}/include" --with-zlib-lib="${DEPS}/lib" \
   shared threads linux-armv4 -DL_ENDIAN ${CFLAGS} ${LDFLAGS} \
@@ -80,7 +78,7 @@ mkdir -p "${DEST}/libexec"
 cp -vfa "${DEPS}/bin/openssl" "${DEST}/libexec/"
 cp -vfa "${DEPS}/lib/libssl.so"* "${DEST}/lib/"
 cp -vfa "${DEPS}/lib/libcrypto.so"* "${DEST}/lib/"
-cp -vfaR "${DEPS}/lib/engines" "${DEST}/lib/"
+cp -vfaR "${DEPS}/lib/engines"* "${DEST}/lib/"
 cp -vfaR "${DEPS}/lib/pkgconfig" "${DEST}/lib/"
 rm -vf "${DEPS}/lib/libcrypto.a" "${DEPS}/lib/libssl.a"
 sed -e "s|^libdir=.*|libdir=${DEST}/lib|g" -i "${DEST}/lib/pkgconfig/libcrypto.pc"
@@ -90,27 +88,18 @@ popd
 
 ### NCURSES ###
 _build_ncurses() {
-local VERSION="5.9"
+local VERSION="6.0"
 local FOLDER="ncurses-${VERSION}"
 local FILE="${FOLDER}.tar.gz"
 local URL="http://ftp.gnu.org/gnu/ncurses/${FILE}"
 
 _download_tgz "${FILE}" "${URL}" "${FOLDER}"
-pushd "target/${FOLDER}"
-./configure --host="${HOST}" --prefix="${DEPS}" --libdir="${DEST}/lib" --datadir="${DEST}/share" --with-shared --enable-rpath
-make
-make install
-rm -vf "${DEST}/lib/libform.a" "${DEST}/lib/libform_g.a" \
-       "${DEST}/lib/libmenu.a" "${DEST}/lib/libmenu_g.a" \
-       "${DEST}/lib/libncurses++.a" "${DEST}/lib/libncurses.a" "${DEST}/lib/libncurses_g.a" \
-       "${DEST}/lib/libpanel.a" "${DEST}/lib/libpanel_g.a"
-popd
-}
+pushd target/"${FOLDER}"
 
 ### MYSQL ###
 _build_mysql() {
 # sudo apt-get install cmake ccmake g++ libncurses5-dev
-local VERSION="5.6.26"
+local VERSION="5.7.42"
 local FOLDER="mysql-${VERSION}"
 local FILE="${FOLDER}.tar.gz"
 local URL="http://cdn.mysql.com/Downloads/MySQL-5.6/${FILE}"
@@ -158,15 +147,15 @@ mv -v zlib/CMakeLists.txt{,.orig}
 touch zlib/CMakeLists.txt
 
 # Fix regex to find openssl 1.0.2 version
-sed -e "s/\^#define/^#[\t ]*define/g" -e "s/\+0x/*0x/g" \
-    -i cmake/ssl.cmake
+#sed -e "s/\^#define/^#[\t ]*define/g" -e "s/\+0x/*0x/g" \
+#    -i cmake/ssl.cmake
 # Add linking to linux-atomic and linux-atomic-64bit
-sed -e "325iTARGET_LINK_LIBRARIES(mysqld linux-atomic linux-atomic-64bit)" \
-    -i sql/CMakeLists.txt
-sed -e "30iTARGET_LINK_LIBRARIES(mysql_embedded linux-atomic linux-atomic-64bit)" \
-    -e "49iTARGET_LINK_LIBRARIES(mysqltest_embedded linux-atomic linux-atomic-64bit)" \
-    -e "74i\  TARGET_LINK_LIBRARIES(mysql_client_test_embedded linux-atomic linux-atomic-64bit)" \
-    -i libmysqld/examples/CMakeLists.txt
+#sed -e "325iTARGET_LINK_LIBRARIES(mysqld linux-atomic linux-atomic-64bit)" \
+#    -i sql/CMakeLists.txt
+#sed -e "30iTARGET_LINK_LIBRARIES(mysql_embedded linux-atomic linux-atomic-64bit)" \
+#    -e "49iTARGET_LINK_LIBRARIES(mysqltest_embedded linux-atomic linux-atomic-64bit)" \
+#    -e "74i\  TARGET_LINK_LIBRARIES(mysql_client_test_embedded linux-atomic linux-atomic-64bit)" \
+#    -i libmysqld/examples/CMakeLists.txt
 
 LDFLAGS="${LDFLAGS:-} -L${DEPS}/lib" \
   cmake . -DCMAKE_TOOLCHAIN_FILE="./cmake_toolchain_file.${ARCH}" \
@@ -208,7 +197,7 @@ popd
 
 ### MYWEBSQL ###
 _build_mywebsql() {
-local VERSION="3.6"
+local VERSION="3.8"
 local FOLDER="mywebsql"
 local FILE="${FOLDER}-${VERSION}.zip"
 local URL="http://sourceforge.net/projects/mywebsql/files/stable/${FILE}"
@@ -247,8 +236,8 @@ mv -vf "${DEST}/data" "${DEST}/data.initial"
 
 ### BUILD ###
 _build() {
-  _build_atomic
-  _build_atomic64
+#  _build_atomic
+#  _build_atomic64
   _build_zlib
   _build_openssl
   _build_ncurses
